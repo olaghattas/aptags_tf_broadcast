@@ -61,6 +61,9 @@ public:
         t.header.stamp = clock_.now();
         // Send the transformation
         tf_broadcaster_->sendTransform(t);
+        // Print the translation and rotation components separately
+        std::cout << "Translation: " << t.transform.translation.x << ", " << t.transform.translation.y << ", " << t.transform.translation.z << std::endl;
+        std::cout << "Rotation: " << t.transform.rotation.x << ", " << t.transform.rotation.y << ", " << t.transform.rotation.z << ", " << t.transform.rotation.w << std::endl;
     }
 
     std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
@@ -96,6 +99,7 @@ int main(int argc, char **argv) {
                 matrix(i, j) = transformation["matrix"][i][j].as<double>();
             }
         }
+        std::cout << matrix << std::endl;
 
         auto node = std::make_shared<AptagFramePublisher>(matrix_id, matrix, frame_id);
         exe.add_node(node);
