@@ -27,10 +27,6 @@ target_include_directories(aptag_broadcast_node PUBLIC ${EIGEN3_INCLUDE_DIRS})
 target_include_directories(aptag_broadcast_node PUBLIC ${YAML_CPP_INCLUDE_DIRS})
 target_link_libraries(aptag_broadcast_node yaml-cpp)
 
-install(
-        DIRECTORY config
-        DESTINATION share/${PROJECT_NAME}
-)
 
 target_include_directories(aptag_broadcast_node  PUBLIC
         ${YAML_CPP_LIBRARIES}
@@ -39,6 +35,11 @@ target_include_directories(aptag_broadcast_node  PUBLIC
 include_directories(
         include
         ${EIGEN3_INCLUDE_DIRS}
+)
+
+install(
+        DIRECTORY config
+        DESTINATION share/${PROJECT_NAME}
 )
 
 install(TARGETS

@@ -19,88 +19,146 @@
 
 class AptagFramePublisher : public rclcpp::Node {
 public:
-    AptagFramePublisher(const std::string id, Eigen::Matrix4d transformation_matrix, const std::string frame_id)
-            : Node("aptag_frame_publisher"+ id) {
+    AptagFramePublisher(const std::vector <std::tuple<Eigen::Matrix4d, std::string, std::string>> &rot_vec,
+                        const std::vector <std::tuple<Eigen::VectorXd, std::string, std::string>> &quat_vec)
+            : Node("aptag_frame_publisher") {
 //          Initialize the transform broadcaster
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
         clock_ = rclcpp::Clock(rcl_clock_type_e::RCL_ROS_TIME);
-        auto func = [this]() -> void { timer_callback(); };
+
+        for (const auto &tup: rot_vec) {
+            auto transformation_matrix = std::get<0>(tup);
+            auto frame_id = std::get<1>(tup);
+            auto id = std::get<2>(tup);
+
+            Eigen::Affine3d affine(transformation_matrix);
+            Eigen::Quaterniond quaternion(affine.linear());
+            Eigen::Vector3d translation(affine.translation());
+
+            // Fill in the message
+            geometry_msgs::msg::TransformStamped t;
+            t.header.frame_id = frame_id;
+            t.child_frame_id = id;
+            t.transform.translation.x = translation.x();
+            t.transform.translation.y = translation.y();
+            t.transform.translation.z = translation.z();
+            t.transform.rotation.x = quaternion.x();
+            t.transform.rotation.y = quaternion.y();
+            t.transform.rotation.z = quaternion.z();
+            t.transform.rotation.w = quaternion.w();
+
+            t_vec.push_back(t);
+
+        }
+
+        for (const auto &tup: quat_vec) {
+            auto transformation_vector_ = std::get<0>(tup);
+            auto frame_id = std::get<1>(tup);
+            auto id = std::get<2>(tup);
+
+            // Fill in the message
+            geometry_msgs::msg::TransformStamped t;
+            t.header.frame_id = frame_id;
+            t.child_frame_id = id;
+            t.transform.translation.x = transformation_vector_(0);
+            t.transform.translation.y = transformation_vector_(1);
+            t.transform.translation.z = transformation_vector_(2);
+            t.transform.rotation.x = transformation_vector_(3);
+            t.transform.rotation.y = transformation_vector_(4);
+            t.transform.rotation.z = transformation_vector_(5);
+            t.transform.rotation.w = transformation_vector_(6);
+
+            t_vec.push_back(t);
+        }
+
+        auto func = [this]() -> void { timer_callback_matrix(); };
         timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), func);
-        id_ = id;
-        frame_id_ = frame_id;
-        transformation_matrix_ = transformation_matrix;
 
     }
 
-    void timer_callback() {
-        Eigen::Affine3d affine(transformation_matrix_);
-
-        Eigen::Quaterniond quaternion(affine.linear());
-        Eigen::Vector3d translation(affine.translation());
-
-        geometry_msgs::msg::TransformStamped t;
-
-        // Fill in the message
-        t.header.frame_id = frame_id_;
-        t.child_frame_id =  id_;
-
-        // Turtle only exists in 2D, thus we get x and y translation
-        // coordinates from the message and set the z coordinate to 0
-        t.transform.translation.x = translation.x();
-        t.transform.translation.y = translation.y() ;
-        t.transform.translation.z = translation.z() ;
-
-        // For the same reason, turtle can only rotate around one axis
-        // and this why we set rotation in x and y to 0 and obtain
-        // rotation in z axis from the message
-        t.transform.rotation.x = quaternion.x();
-        t.transform.rotation.y = quaternion.y();
-        t.transform.rotation.z = quaternion.z();
-        t.transform.rotation.w = quaternion.w();
-
-        t.header.stamp = clock_.now();
+    void timer_callback_matrix() {
         // Send the transformation
-        tf_broadcaster_->sendTransform(t);
+        for (auto &t: t_vec) {
+            t.header.stamp = clock_.now();
+            tf_broadcaster_->sendTransform(t);
+        }
     }
 
-    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
+    std::unique_ptr <tf2_ros::TransformBroadcaster> tf_broadcaster_;
     rclcpp::Clock clock_;
     rclcpp::TimerBase::SharedPtr timer_;
-    std::string id_;
-    std::string frame_id_;
-    Eigen::Matrix4d transformation_matrix_;
+    std::vector <geometry_msgs::msg::TransformStamped> t_vec;
+};
+
+class GetParams : public rclcpp::Node {
+public:
+    GetParams()
+            : Node("get_params") {
+
+        this->declare_parameter("rotmat_quat",
+                                "quat"); // specifies whether the yaml has a rotation matrix or  a quaternion
+        this->declare_parameter("yaml_file_name",
+                                "output.yaml"); // specifies the name of the yaml file
+    }
+
+    std::string getRotmatQuat() {
+        return this->get_parameter("rotmat_quat").as_string();
+    }
+
+    std::string getYamlFileName() {
+        return this->get_parameter("yaml_file_name").as_string();
+    }
 };
 
 int main(int argc, char **argv) {
 
     rclcpp::init(argc, argv);
     rclcpp::executors::SingleThreadedExecutor exe;
-    std::vector<std::shared_ptr<AptagFramePublisher>> nodes;
+
+    auto node_params = std::make_shared<GetParams>();
 
     std::filesystem::path pkg_dir = ament_index_cpp::get_package_share_directory("aptags_tf_broadcast");
-    auto file_path = pkg_dir / "config" / "transformation_matrix.yaml";
+    auto file_path = pkg_dir / "config" / node_params->getYamlFileName();
 
     // Load YAML file
     YAML::Node yaml_data = YAML::LoadFile(file_path);
 
+    std::vector <std::tuple<Eigen::Matrix4d, std::string, std::string>> matrix_vec;
+    std::vector <std::tuple<Eigen::VectorXd, std::string, std::string>> vector_vec;
     // Extract transformations from YAML data
     YAML::Node transformations = yaml_data["transformations"];
-    for (const auto& transformation : transformations) {
-        // Extract ID and matrix
-        const std::string matrix_id = transformation["id"].as<std::string>();
-        const std::string frame_id = transformation["frame_id"].as<std::string>();
+    if (node_params->getRotmatQuat() == "rotmat") {
+        for (const auto &transformation: transformations) {
+            // Extract ID and matrix
+            const std::string aptag_id = transformation["id"].as<std::string>();
+            const std::string frame_id = transformation["frame_id"].as<std::string>();
 
-        Eigen::Matrix4d matrix;
-        for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                matrix(i, j) = transformation["matrix"][i][j].as<double>();
+            Eigen::Matrix4d matrix;
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    matrix(i, j) = transformation["matrix"][i][j].as<double>();
+                }
             }
+            matrix_vec.push_back({matrix, frame_id, aptag_id});
         }
+    } else {
+        for (const auto &transformation: transformations) {
+            // Extract ID and matrix
+            const std::string aptag_id = transformation["id"].as<std::string>();
+            const std::string frame_id = transformation["frame_id"].as<std::string>();
 
-        auto node = std::make_shared<AptagFramePublisher>(matrix_id, matrix, frame_id);
-        exe.add_node(node);
-        nodes.push_back(node);
+            Eigen::VectorXd vector(7);
+            for (int i = 0; i < 7; ++i) {
+                vector(i) = transformation["transform"][i].as<double>();
+            }
+            vector_vec.push_back({vector, frame_id, aptag_id});
+
+        }
     }
+
+    auto node = std::make_shared<AptagFramePublisher>(matrix_vec, vector_vec);
+    exe.add_node(node);
 
     exe.spin();
 
