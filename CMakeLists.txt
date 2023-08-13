@@ -42,6 +42,10 @@ install(
         DESTINATION share/${PROJECT_NAME}
 )
 
+install(DIRECTORY launch
+        DESTINATION share/${PROJECT_NAME}/
+)
+
 install(TARGETS
         aptag_broadcast_node
         DESTINATION lib/${PROJECT_NAME}

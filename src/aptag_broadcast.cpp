@@ -19,8 +19,8 @@
 
 class AptagFramePublisher : public rclcpp::Node {
 public:
-    AptagFramePublisher(const std::vector <std::tuple<Eigen::Matrix4d, std::string, std::string>> &rot_vec,
-                        const std::vector <std::tuple<Eigen::VectorXd, std::string, std::string>> &quat_vec)
+    AptagFramePublisher(const std::vector<std::tuple<Eigen::Matrix4d, std::string, std::string>> &rot_vec,
+                        const std::vector<std::tuple<Eigen::VectorXd, std::string, std::string>> &quat_vec)
             : Node("aptag_frame_publisher") {
 //          Initialize the transform broadcaster
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
@@ -86,10 +86,10 @@ public:
     }
 
 
-    std::unique_ptr <tf2_ros::TransformBroadcaster> tf_broadcaster_;
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     rclcpp::Clock clock_;
     rclcpp::TimerBase::SharedPtr timer_;
-    std::vector <geometry_msgs::msg::TransformStamped> t_vec;
+    std::vector<geometry_msgs::msg::TransformStamped> t_vec;
 };
 
 class GetParams : public rclcpp::Node {
@@ -97,14 +97,8 @@ public:
     GetParams()
             : Node("get_params") {
 
-        this->declare_parameter("rotmat_quat",
-                                "quat"); // specifies whether the yaml has a rotation matrix or  a quaternion
         this->declare_parameter("yaml_file_name",
-                                "output.yaml"); // specifies the name of the yaml file
-    }
-
-    std::string getRotmatQuat() {
-        return this->get_parameter("rotmat_quat").as_string();
+                                "aptags_location.yaml"); // specifies the name of the yaml file
     }
 
     std::string getYamlFileName() {
@@ -125,12 +119,13 @@ int main(int argc, char **argv) {
     // Load YAML file
     YAML::Node yaml_data = YAML::LoadFile(file_path);
 
-    std::vector <std::tuple<Eigen::Matrix4d, std::string, std::string>> matrix_vec;
-    std::vector <std::tuple<Eigen::VectorXd, std::string, std::string>> vector_vec;
+    std::vector<std::tuple<Eigen::Matrix4d, std::string, std::string>> matrix_vec;
+    std::vector<std::tuple<Eigen::VectorXd, std::string, std::string>> vector_vec;
     // Extract transformations from YAML data
     YAML::Node transformations = yaml_data["transformations"];
-    if (node_params->getRotmatQuat() == "rotmat") {
-        for (const auto &transformation: transformations) {
+
+    for (const auto &transformation: transformations) {
+        if (transformation["matrix"]) {
             // Extract ID and matrix
             const std::string aptag_id = transformation["id"].as<std::string>();
             const std::string frame_id = transformation["frame_id"].as<std::string>();
@@ -142,9 +137,7 @@ int main(int argc, char **argv) {
                 }
             }
             matrix_vec.push_back({matrix, frame_id, aptag_id});
-        }
-    } else {
-        for (const auto &transformation: transformations) {
+        } else {
             // Extract ID and matrix
             const std::string aptag_id = transformation["id"].as<std::string>();
             const std::string frame_id = transformation["frame_id"].as<std::string>();
