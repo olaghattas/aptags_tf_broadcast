@@ -1,0 +1,11 @@
+transformations:
+- frame_id: camera_color_optical_frame
+  id: charger
+  transform:
+    - -2.119
+    - -5.17
+    - -1
+    - 0.5
+    - -0.5
+    - 0.5
+    - -0.5

@@ -29,6 +29,7 @@ def generate_launch_description():
         description="rooms location"
     )
     ld.add_action(room_file)
+
     rooms = Node(
         package="aptags_tf_broadcast",
         executable="aptag_broadcast_node",
@@ -39,5 +40,24 @@ def generate_launch_description():
     )
 
     ld.add_action(rooms)
+
+    helper_file = DeclareLaunchArgument(
+        "helper_location",
+        default_value="/home/olagh/smart-home/src/smart-home/external/aptags_tf_broadcast/config/helpers.yaml",
+        description="helper location"
+    )
+
+    ld.add_action(helper_file)
+
+    helpers = Node(
+        package="aptags_tf_broadcast",
+        executable="aptag_broadcast_node",
+        name="helper_launch",
+        parameters=[
+            {"yaml_file_name": LaunchConfiguration("helper_location")}
+        ]
+    )
+
+    ld.add_action(helpers)
 
     return ld
