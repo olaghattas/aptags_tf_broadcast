@@ -7,8 +7,8 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     aptags_file = DeclareLaunchArgument(
-        "aptags_location",
-        default_value="/home/olagh/smart-home/src/smart-home/external/aptags_tf_broadcast/config/aptags_location.yaml",
+        "hewitthall_aptags",
+        default_value="/home/olagh/smart-home/src/smart-home/external/aptags_tf_broadcast/config/hewitthall_aptags.yaml",
         description="aptags location"
     )
     ld.add_action(aptags_file)
@@ -17,7 +17,7 @@ def generate_launch_description():
         executable="aptag_broadcast_node",
         name="aptags_launch",
         parameters=[
-            {"yaml_file_name": LaunchConfiguration("aptags_location")}
+            {"yaml_file_name": LaunchConfiguration("hewitthall_aptags")}
         ]
     )
 
@@ -60,4 +60,22 @@ def generate_launch_description():
 
     ld.add_action(helpers)
 
+    # tf_mat_file = DeclareLaunchArgument(
+    #     "tf_mat_Lo",
+    #     default_value="/home/olagh/smart-home/src/smart-home/external/aptags_tf_broadcast/config/transformation_matrix.yaml",
+    #     description="tf_mat"
+    # )
+    #
+    # ld.add_action(tf_mat_file)
+    #
+    # tf_mat = Node(
+    #     package="aptags_tf_broadcast",
+    #     executable="aptag_broadcast_node",
+    #     name="tf_mat",
+    #     parameters=[
+    #         {"yaml_file_name": LaunchConfiguration("tf_mat_Lo")}
+    #     ]
+    # )
+    #
+    # ld.add_action(tf_mat)
     return ld
