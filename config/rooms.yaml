@@ -53,10 +53,10 @@ transformations:
   - frame_id: map
     id: home
     transform:
-      - -2.119
-      - -5.17
+      - -0.3
+      - -3.6
       - -1
       - 0.0
       - 0.0
-      - 0.0
-      - 1.0
+      - 0.707
+      - 0.707
