@@ -30,7 +30,7 @@ def generate_launch_description():
 
     room_file = DeclareLaunchArgument(
         "rooms_location",
-        default_value=pkg_path + "rooms.yaml",
+        default_value=pkg_path + "hewitthall_rooms.yaml",
         description="rooms location"
     )
     ld.add_action(room_file)
@@ -57,7 +57,7 @@ def generate_launch_description():
     helpers = Node(
         package="aptags_tf_broadcast",
         executable="aptag_broadcast_node",
-        name="helper_launch",
+        name="helper_launch_ll",
         parameters=[
             {"yaml_file_name": LaunchConfiguration("helper_location")}
         ]
