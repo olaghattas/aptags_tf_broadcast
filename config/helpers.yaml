@@ -2,13 +2,13 @@ transformations:
   - frame_id: charger
     id: camera_color_optical_frame
     transform:
-      - -0.23
-      - -0.025
-      - 0.232
-      - 0.5
-      - -0.5
-      - 0.5
-      - -0.5
+    - -0.216
+    - -0.045
+    - 0.248
+    - 0.5
+    - -0.5
+    - 0.5
+    - -0.5
   - frame_id: map
     id: nathan
     transform:
