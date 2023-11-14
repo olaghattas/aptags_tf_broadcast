@@ -1,4 +1,3 @@
----
 transformations:
 #  - id: 'tag_0'
 #    frame_id: 'camera_color_optical_frame'
