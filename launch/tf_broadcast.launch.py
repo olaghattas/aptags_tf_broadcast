@@ -10,7 +10,7 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     pkg_path = get_package_share_directory('aptags_tf_broadcast') + "/config/"
-
+    #
     aptags_file = DeclareLaunchArgument(
         "hewitthall_aptags",
         default_value=pkg_path + "hewitthall_aptags.yaml",
@@ -34,7 +34,7 @@ def generate_launch_description():
         description="rooms location"
     )
     ld.add_action(room_file)
-
+    #
     rooms = Node(
         package="aptags_tf_broadcast",
         executable="aptag_broadcast_node",

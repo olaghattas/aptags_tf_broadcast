@@ -9,7 +9,7 @@
 //
 #include "rclcpp/rclcpp.hpp"
 //
-#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 #include <geometry_msgs/msg/transform_stamped.h>
 
 #include <yaml-cpp/yaml.h>
@@ -23,7 +23,7 @@ public:
                         const std::vector<std::tuple<Eigen::VectorXd, std::string, std::string>> &quat_vec)
             : Node("aptag_frame_publisher") {
 //          Initialize the transform broadcaster
-        tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+        tf_broadcaster_ = std::make_unique<tf2_ros::StaticTransformBroadcaster>(*this);
         clock_ = rclcpp::Clock(rcl_clock_type_e::RCL_ROS_TIME);
 
         for (const auto &tup: rot_vec) {
@@ -71,22 +71,26 @@ public:
             t_vec.push_back(t);
         }
 
-        auto func = [this]() -> void { timer_callback_matrix(); };
-        timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), func);
-
-    }
-
-    void timer_callback_matrix() {
-        // Send the transformation
+//        auto func = [this]() -> void { timer_callback_matrix(); };
         for (auto &t: t_vec) {
             t.header.stamp = clock_.now();
             tf_broadcaster_->sendTransform(t);
         }
+//        timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), func);
 
     }
 
+//    void timer_callback_matrix() {
+//        // Send the transformation
+//        for (auto &t: t_vec) {
+//            t.header.stamp = clock_.now();
+//            tf_broadcaster_->sendTransform(t);
+//        }
+//
+//    }
 
-    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
+    std::unique_ptr<tf2_ros::StaticTransformBroadcaster> tf_broadcaster_;
     rclcpp::Clock clock_;
     rclcpp::TimerBase::SharedPtr timer_;
     std::vector<geometry_msgs::msg::TransformStamped> t_vec;
