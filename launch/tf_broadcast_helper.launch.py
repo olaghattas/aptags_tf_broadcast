@@ -11,9 +11,9 @@ def generate_launch_description():
     ld = LaunchDescription()
     pkg_path = get_package_share_directory('aptags_tf_broadcast') + "/config/"
     helper_file = DeclareLaunchArgument(
-        "helper_location",
-        default_value=pkg_path + "helpers.yaml",
-        description="helper location"
+        "cam_location",
+        default_value=pkg_path + "cams_olson.yaml",
+        description="cam location"
     )
 
     ld.add_action(helper_file)
@@ -21,9 +21,9 @@ def generate_launch_description():
     helpers = Node(
         package="aptags_tf_broadcast",
         executable="aptag_broadcast_node",
-        name="helper_launch_pf",
+        name="cam_launch_pf",
         parameters=[
-            {"yaml_file_name": LaunchConfiguration("helper_location")}
+            {"yaml_file_name": LaunchConfiguration("cam_location")}
         ]
     )
 
