@@ -1,6 +1,6 @@
 transformations:
 - frame_id: unity
-  id: zed_living_room
+  id: zed_living_room_cam
   transform:
     - -7.480000019073486
     - 1.2799999713897705
@@ -10,7 +10,7 @@ transformations:
     - 0.02654145258120739
     - 0.9950657980362507
 - frame_id: unity
-  id: zed_bedroom
+  id: zed_bedroom_cam
   transform:
     - -2.499000072479248
     - 3.1700000762939453
@@ -20,7 +20,7 @@ transformations:
     - -0.7071067811865475
     - 0.7071067811865476
 - frame_id: unity
-  id: zed_kitchen
+  id: zed_kitchen_cam
   transform:
     - -0.1860000044107437
     - 3.2790000438690186
