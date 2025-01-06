@@ -1,5 +1,15 @@
 transformations:
 - frame_id: unity
+  id: map
+  transform:
+    - -2.314
+    - 0.978
+    - -1.23
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.1
+- frame_id: unity
   id: zed_living_room_cam
   transform:
     - -7.480000019073486

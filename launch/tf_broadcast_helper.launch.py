@@ -12,7 +12,7 @@ def generate_launch_description():
     pkg_path = get_package_share_directory('aptags_tf_broadcast') + "/config/"
     helper_file = DeclareLaunchArgument(
         "cam_location",
-        default_value=pkg_path + "cams_rick.yaml",
+        default_value=pkg_path + "cams_olson.yaml",
         description="cam location"
     )
 
@@ -27,5 +27,23 @@ def generate_launch_description():
         ]
     )
 
+    helper_standalone_file = DeclareLaunchArgument(
+        "room_location",
+        default_value=pkg_path + "olson_rooms.yaml",
+        description="room location"
+    )
+
+    ld.add_action(helper_standalone_file)
+
+    helper_standalone = Node(
+        package="aptags_tf_broadcast",
+        executable="aptag_broadcast_node",
+        name="room_launch_pf",
+        parameters=[
+            {"yaml_file_name": LaunchConfiguration("room_location")}
+        ]
+    )
+
     ld.add_action(helpers)
+    ld.add_action(helper_standalone)
     return ld
