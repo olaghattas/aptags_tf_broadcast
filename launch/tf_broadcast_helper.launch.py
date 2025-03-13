@@ -12,7 +12,7 @@ def generate_launch_description():
     pkg_path = get_package_share_directory('aptags_tf_broadcast') + "/config/"
     helper_file = DeclareLaunchArgument(
         "cam_location",
-        default_value=pkg_path + "cams_olson.yaml",
+        default_value=pkg_path + "exeter_cam.yaml",
         description="cam location"
     )
 
@@ -29,7 +29,7 @@ def generate_launch_description():
 
     helper_standalone_file = DeclareLaunchArgument(
         "room_location",
-        default_value=pkg_path + "olson_rooms.yaml",
+        default_value=pkg_path + "exeter_rooms.yaml",
         description="room location"
     )
 
